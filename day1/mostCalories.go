@@ -88,6 +88,7 @@ func ParseElvesFromStdin() [][]int {
 
 func main() {
 	elves := ParseElvesFromStdin()
+	flag.Parse()
 
 	if *first {
 		GetMostCaloriesElf(elves)
