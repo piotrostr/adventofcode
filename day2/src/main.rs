@@ -1,4 +1,4 @@
-use std::io;
+use std::{env::args, io};
 
 fn main() {
     let mut input = String::new();
@@ -22,15 +22,26 @@ fn main() {
     // pop the two returns at the end
     guide.pop();
     guide.pop();
-    let mut total_score: i32 = 0;
-    for strategy in guide {
-        // this split is not optimal, would prefer to do the
-        // pythonic a, b = split(" ")
-        let (player_move, opponent_move) = strategy.split_at(1);
-        let score = get_score(player_move, &opponent_move[1..opponent_move.len()]);
-        total_score += score;
+
+    match args().nth(1) {
+        Some(pattern) => {
+            if pattern == "--first" {
+                let mut total_score: i32 = 0;
+                for strategy in guide {
+                    // this split is not optimal, would prefer to do the
+                    // pythonic a, b = split(" ")
+                    let (player_move, opponent_move) = strategy.split_at(1);
+                    let score = get_score(player_move, &opponent_move[1..opponent_move.len()]);
+                    total_score += score;
+                }
+                println!("{}", total_score);
+            }
+        }
+        // second
+        None => {
+            println!("second");
+        }
     }
-    println!("{}", total_score);
 }
 
 /// Rules
