@@ -39,7 +39,16 @@ fn main() {
         }
         // second
         None => {
-            println!("second");
+            let mut total_score: i32 = 0;
+            for strategy in guide {
+                // this split is not optimal, would prefer to do the
+                // pythonic a, b = split(" ")
+                let (opponent_move, mut player_move) = strategy.split_at(1);
+                player_move = &player_move[1..player_move.len()];
+                let score = get_score_second_round(opponent_move, player_move);
+                total_score += score;
+            }
+            println!("{}", total_score);
         }
     }
 }
@@ -79,25 +88,98 @@ fn main() {
 /// C : X => win + rock = 6 + 1 = 7
 /// C : Y => lose + paper = 0 + 2 = 2
 /// C : Z => draw + scissors = 3 + 3 = 6
-fn get_score(player_move: &str, opponent_move: &str) -> i32 {
-    if player_move == "A" && opponent_move == "X" {
+fn get_score(opponent_move: &str, player_move: &str) -> i32 {
+    if opponent_move == "A" && player_move == "X" {
         return 4;
-    } else if player_move == "A" && opponent_move == "Y" {
+    } else if opponent_move == "A" && player_move == "Y" {
         return 8;
-    } else if player_move == "A" && opponent_move == "Z" {
+    } else if opponent_move == "A" && player_move == "Z" {
         return 3;
-    } else if player_move == "B" && opponent_move == "X" {
+    } else if opponent_move == "B" && player_move == "X" {
         return 1;
-    } else if player_move == "B" && opponent_move == "Y" {
+    } else if opponent_move == "B" && player_move == "Y" {
         return 5;
-    } else if player_move == "B" && opponent_move == "Z" {
+    } else if opponent_move == "B" && player_move == "Z" {
         return 9;
-    } else if player_move == "C" && opponent_move == "X" {
+    } else if opponent_move == "C" && player_move == "X" {
         return 7;
-    } else if player_move == "C" && opponent_move == "Y" {
+    } else if opponent_move == "C" && player_move == "Y" {
         return 2;
-    } else if player_move == "C" && opponent_move == "Z" {
+    } else if opponent_move == "C" && player_move == "Z" {
         return 6;
+    }
+    return 0;
+}
+
+/// Rules changed:
+/// rock = A
+/// paper = B
+/// scissors = C
+///
+/// second col:
+/// lose = X
+/// draw = Y
+/// win = Z
+///
+/// points still the same:
+/// rock = 1
+/// paper = 2
+/// scissors = 3
+///
+/// win = 6
+/// draw = 3
+/// lose = 0
+fn get_score_second_round(opponent_move: &str, player_move: &str) -> i32 {
+    match player_move {
+        // lose
+        "X" => match opponent_move {
+            "A" => {
+                // scissors
+                return 0 + 3;
+            }
+            "B" => {
+                // rock
+                return 0 + 1;
+            }
+            "C" => {
+                // paper
+                return 0 + 2;
+            }
+            _ => {}
+        },
+        // draw
+        "Y" => match opponent_move {
+            "A" => {
+                // rock
+                return 3 + 1;
+            }
+            "B" => {
+                // paper
+                return 3 + 2;
+            }
+            "C" => {
+                // scissors
+                return 3 + 3;
+            }
+            _ => {}
+        },
+        // win
+        "Z" => match opponent_move {
+            "A" => {
+                // paper
+                return 6 + 2;
+            }
+            "B" => {
+                // scissors
+                return 6 + 3;
+            }
+            "C" => {
+                // rock
+                return 6 + 1;
+            }
+            _ => {}
+        },
+        _ => {}
     }
     return 0;
 }
