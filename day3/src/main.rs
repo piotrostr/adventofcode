@@ -1,10 +1,10 @@
-use std::{collections::HashMap, io::Read};
+use std::{collections::HashMap, fs::File, io::stdin, io::Read};
 
 /// parse_input_string parses copy-pasted input from stdin and returns it as a string
 pub fn parse_input_string() -> String {
     let mut input = String::new();
     loop {
-        match std::io::stdin().read_line(&mut input) {
+        match stdin().read_line(&mut input) {
             Ok(_) => {
                 let as_split = input.split("\n").collect::<Vec<&str>>();
                 if as_split[as_split.len() - 2] == "" && as_split[as_split.len() - 1] == "" {
@@ -21,7 +21,7 @@ pub fn parse_input_string() -> String {
 
 pub fn read_input_string_from_file() -> String {
     let mut input = String::new();
-    let mut file = std::fs::File::open("input.txt").unwrap();
+    let mut file = File::open("input.txt").unwrap();
     file.read_to_string(&mut input).unwrap();
     return input;
 }
