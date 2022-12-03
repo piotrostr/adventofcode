@@ -1,6 +1,7 @@
 use std::{env::args, io};
 
-fn main() {
+/// parse_input_string parses copy-pasted input from stdin and returns it as a string
+fn parse_input_string() -> String {
     let mut input = String::new();
     loop {
         match io::stdin().read_line(&mut input) {
@@ -16,7 +17,11 @@ fn main() {
             }
         }
     }
+    return input;
+}
 
+fn main() {
+    let input = parse_input_string();
     let mut guide = input.split("\n").collect::<Vec<&str>>();
 
     // pop the two returns at the end
@@ -28,9 +33,7 @@ fn main() {
             if pattern == "--first" {
                 let mut total_score: i32 = 0;
                 for strategy in guide {
-                    // this split is not optimal, would prefer to do the
-                    // pythonic a, b = split(" ")
-                    let (player_move, opponent_move) = strategy.split_at(1);
+                    let (opponent_move, player_move) = strategy.split_once(" ").unwrap();
                     let score = get_score(player_move, &opponent_move[1..opponent_move.len()]);
                     total_score += score;
                 }
@@ -41,10 +44,7 @@ fn main() {
         None => {
             let mut total_score: i32 = 0;
             for strategy in guide {
-                // this split is not optimal, would prefer to do the
-                // pythonic a, b = split(" ")
-                let (opponent_move, mut player_move) = strategy.split_at(1);
-                player_move = &player_move[1..player_move.len()];
+                let (opponent_move, player_move) = strategy.split_once(" ").unwrap();
                 let score = get_score_second_round(opponent_move, player_move);
                 total_score += score;
             }
