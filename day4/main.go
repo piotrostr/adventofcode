@@ -23,14 +23,34 @@ func ReadInputFromFile() string {
 	return string(contents)
 }
 
-func CheckIfFullyContains(firstRange [2]int, secondRange [2]int) bool {
+func CheckIfFullyContains(a [2]int, b [2]int) bool {
 	// first one contains second
-	if firstRange[0] <= secondRange[0] && firstRange[1] >= secondRange[1] {
+	if a[0] <= b[0] && a[1] >= b[1] {
 		return true
 	}
 
 	// second one contains first
-	if secondRange[0] <= firstRange[0] && secondRange[1] >= firstRange[1] {
+	if b[0] <= a[0] && b[1] >= a[1] {
+		return true
+	}
+
+	return false
+}
+
+func CheckIfOverlapping(a [2]int, b [2]int) bool {
+
+	// the containing cases
+	if CheckIfFullyContains(a, b) {
+		return true
+	}
+
+	// left overlaps right from left side
+	if a[0] <= b[0] && b[0] <= a[1] && b[1] >= a[1] {
+		return true
+	}
+
+	// left overlaps right from right side
+	if b[0] <= a[0] && a[0] <= b[1] && a[1] >= b[1] {
 		return true
 	}
 
@@ -42,6 +62,7 @@ func main() {
 	pairs := strings.Split(input, "\n")
 
 	fullyContainedRanges := 0
+	overlappingRanges := 0
 
 	// drop the last one (empty)
 	pairs = pairs[:len(pairs)-1]
@@ -80,7 +101,13 @@ func main() {
 		if isFullyContained {
 			fullyContainedRanges += 1
 		}
+
+		isOverlapping := CheckIfOverlapping(firstRange, secondRange)
+		if isOverlapping {
+			overlappingRanges += 1
+		}
 	}
 
-	fmt.Println("fully containted:", fullyContainedRanges)
+	fmt.Println("fully contained:", fullyContainedRanges)
+	fmt.Println("overlapping:", overlappingRanges)
 }
