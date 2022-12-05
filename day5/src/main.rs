@@ -63,5 +63,40 @@ fn main() {
             crate_index += 1;
         }
     }
-    println!("{:?}", stacks);
+
+    // now the instructions, parse just the numbers
+    let mut instruction_sets = instructions
+        .iter()
+        .map(|x| x.split(" ").collect::<Vec<&str>>())
+        .map(|x| {
+            x.iter()
+                .filter(|&e| match e.parse::<usize>() {
+                    Ok(_) => true,
+                    Err(_) => false,
+                })
+                .map(|&e| e.parse::<usize>().unwrap())
+                .collect::<Vec<usize>>()
+        })
+        .collect::<Vec<Vec<usize>>>();
+
+    instruction_sets.pop(); // the last element is an empty array
+
+    for mut set in instruction_sets.clone() {
+        // every instruction set has exactly three nums - n, from, to
+        let to = set.pop().unwrap();
+        let from = set.pop().unwrap();
+        let n = set.pop().unwrap();
+        for _ in 0..n {
+            let element = stacks.get_mut(&from).unwrap().pop_back().unwrap();
+            stacks.get_mut(&to).unwrap().push_back(element);
+        }
+    }
+    let mut message = "".to_string();
+    for i in 1..=num_stacks {
+        let the_crate = stacks.get(&i).unwrap().back().unwrap();
+        let letter = the_crate.chars().nth(1).unwrap();
+        message = format!("{}{}", message, letter);
+    }
+
+    println!("first part message: {}", message);
 }
