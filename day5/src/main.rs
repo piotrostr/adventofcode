@@ -81,22 +81,47 @@ fn main() {
 
     instruction_sets.pop(); // the last element is an empty array
 
-    for mut set in instruction_sets.clone() {
-        // every instruction set has exactly three nums - n, from, to
-        let to = set.pop().unwrap();
-        let from = set.pop().unwrap();
-        let n = set.pop().unwrap();
-        for _ in 0..n {
-            let element = stacks.get_mut(&from).unwrap().pop_back().unwrap();
-            stacks.get_mut(&to).unwrap().push_back(element);
+    {
+        let mut stacks = stacks.clone();
+        for mut set in instruction_sets.clone() {
+            // every instruction set has exactly three nums - n, from, to
+            let to = set.pop().unwrap();
+            let from = set.pop().unwrap();
+            let n = set.pop().unwrap();
+            for _ in 0..n {
+                let element = stacks.get_mut(&from).unwrap().pop_back().unwrap();
+                stacks.get_mut(&to).unwrap().push_back(element);
+            }
         }
-    }
-    let mut message = "".to_string();
-    for i in 1..=num_stacks {
-        let the_crate = stacks.get(&i).unwrap().back().unwrap();
-        let letter = the_crate.chars().nth(1).unwrap();
-        message = format!("{}{}", message, letter);
+        let mut message = "".to_string();
+        for i in 1..=num_stacks {
+            let the_crate = stacks.get(&i).unwrap().back().unwrap();
+            let letter = the_crate.chars().nth(1).unwrap();
+            message = format!("{}{}", message, letter);
+        }
+        println!("first part message: {}", message);
     }
 
-    println!("first part message: {}", message);
+    {
+        let mut stacks = stacks.clone();
+        for mut set in instruction_sets.clone() {
+            // every instruction set has exactly three nums - n, from, to
+            let mut temp_vec = VecDeque::<&str>::new();
+            let to = set.pop().unwrap();
+            let from = set.pop().unwrap();
+            let n = set.pop().unwrap();
+            for _ in 0..n {
+                let element = stacks.get_mut(&from).unwrap().pop_back().unwrap();
+                temp_vec.push_front(element);
+            }
+            stacks.get_mut(&to).unwrap().append(&mut temp_vec);
+        }
+        let mut message = "".to_string();
+        for i in 1..=num_stacks {
+            let the_crate = stacks.get(&i).unwrap().back().unwrap();
+            let letter = the_crate.chars().nth(1).unwrap();
+            message = format!("{}{}", message, letter);
+        }
+        println!("second part message: {}", message);
+    }
 }
