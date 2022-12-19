@@ -47,13 +47,31 @@ fn main() {
             }
         }
     }
-    let solution: i32 = directories
+    let sum: i32 = directories
         .values()
         .filter(|v| **v <= 100000)
         .map(|x| *x)
         .reduce(|a, b| a + b)
         .unwrap();
-    println!("{}", solution)
+
+    println!("sum of utmost 100000: {}", sum);
+
+    // part 2
+    let total_space = 70000000;
+    let space_required = 30000000;
+    let used_space = directories.get("/").unwrap();
+    let minimal_space_to_free = used_space - (total_space - space_required);
+
+    let mut dirs = directories.iter().collect::<Vec<(&String, &i32)>>();
+
+    dirs.sort_by(|a, b| a.1.cmp(b.1));
+
+    for (_, dir_size) in dirs.iter() {
+        if **dir_size >= minimal_space_to_free {
+            println!("best to remove size: {}", dir_size);
+            break;
+        }
+    }
 }
 
 // increment_recursively increments all of the parent directories in the map until / is reached
