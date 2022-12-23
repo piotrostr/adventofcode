@@ -5,7 +5,7 @@ type Point = (usize, usize);
 
 fn main() {
     let input = read_to_string("input.txt").unwrap();
-    let mut lines = input.split("\n").collect::<Vec<&str>>();
+    let mut lines = input.split('\n').collect::<Vec<&str>>();
     lines.pop(); // pop the empty line at the end
     let arr = lines
         .iter()
@@ -20,6 +20,7 @@ fn main() {
     let mut visible = HashSet::<Point>::new();
 
     // go in every direction to see if it is visible
+    // vertical
     for i in 0..arr.len() {
         let mut largest = arr[i][0];
         visible.insert((i, 0));
@@ -43,18 +44,12 @@ fn main() {
         }
     }
 
-    // swap the order of left and right to go from the end
-    // do the trick by subtracting the index from the length
-    // be sure to subtract 1 from the length to account for the 0 index
-    //
-    // this can be refactored to use the rust `(0..arr.len()).rev()`,
-    // did not know about it at time of writing lol
-    for mut i in 0..arr.len() {
-        i = arr.len() - 1 - i;
+    // reverse the order of the ranges to go from the end
+    // vertical
+    for i in (0..arr.len()).rev() {
         let mut largest = arr[i][arr.len() - 1];
         visible.insert((i, arr.len() - 1));
-        for mut j in 0..arr[i].len() {
-            j = arr.len() - 1 - j;
+        for j in (0..arr[i].len()).rev() {
             if arr[i][j] > largest {
                 visible.insert((i, j));
                 largest = arr[i][j];
@@ -62,12 +57,11 @@ fn main() {
         }
     }
 
-    for mut i in 0..arr.len() {
-        i = arr.len() - 1 - i;
+    // horizontal
+    for i in (0..arr.len()).rev() {
         let mut largest = arr[arr.len() - 1][i];
         visible.insert((arr.len() - 1, i));
-        for mut j in 0..arr[i].len() {
-            j = arr.len() - 1 - j;
+        for j in (0..arr[i].len()).rev() {
             if arr[j][i] > largest {
                 visible.insert((j, i));
                 largest = arr[j][i];
@@ -154,9 +148,5 @@ fn get_scenic_score(arr: &Vec<Vec<usize>>, point: Point) -> usize {
         view_lengths.push(view_length);
     }
 
-    return view_lengths
-        .iter()
-        .map(|x| *x)
-        .reduce(|a, b| a * b)
-        .unwrap();
+    return view_lengths.iter().copied().reduce(|a, b| a * b).unwrap();
 }
