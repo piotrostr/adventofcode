@@ -1,3 +1,5 @@
+use crate::common::check_if_are_adjacent;
+
 use super::common::{Direction, Instruction, Point};
 use std::collections::HashSet;
 
@@ -23,7 +25,7 @@ impl Bridge {
         }
     }
 
-    pub fn handle_instruction(&mut self, instruction: Instruction) {
+    pub fn handle_instruction(&mut self, instruction: &Instruction) {
         let mut steps_remaining = instruction.n_steps;
         while steps_remaining > 0 {
             self.last_head_position = self.head_position;
@@ -55,7 +57,7 @@ impl Bridge {
                 }
             }
 
-            if !self.tail_is_adjacent_to_head() {
+            if !check_if_are_adjacent(&self.tail_position, &self.head_position) {
                 self.tail_position = self.last_head_position;
             }
 
@@ -63,41 +65,5 @@ impl Bridge {
 
             steps_remaining -= 1;
         }
-    }
-
-    pub fn tail_is_adjacent_to_head(&self) -> bool {
-        // overlap
-        if self.tail_position.x == self.head_position.x
-            && self.tail_position.y == self.head_position.y
-        {
-            return true;
-        }
-
-        // top/bottom
-        if self.tail_position.x == self.head_position.x
-            && (self.tail_position.y == self.head_position.y + 1
-                || self.tail_position.y == self.head_position.y - 1)
-        {
-            return true;
-        }
-
-        // sides
-        if self.tail_position.y == self.head_position.y
-            && (self.tail_position.x == self.head_position.x + 1
-                || self.tail_position.x == self.head_position.x - 1)
-        {
-            return true;
-        }
-
-        // corners
-        if (self.tail_position.x == self.head_position.x + 1
-            || self.tail_position.x == self.head_position.x - 1)
-            && (self.tail_position.y == self.head_position.y + 1
-                || self.tail_position.y == self.head_position.y - 1)
-        {
-            return true;
-        }
-
-        false
     }
 }

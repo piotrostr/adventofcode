@@ -9,15 +9,17 @@ use std::fs::read_to_string;
 
 fn main() {
     let mut bridge = Bridge::new();
+    let mut large_bridge = LargeBridge::new();
     read_to_string("input.txt")
         .unwrap()
         .lines()
         .map(Instruction::parse)
         .for_each(|instruction| {
-            bridge.handle_instruction(instruction);
+            bridge.handle_instruction(&instruction);
+            large_bridge.handle_instruction(&instruction);
         });
 
-    println!("{}", bridge.unique_positions());
-
-    let mut _large_bridge = LargeBridge::new();
+    println!("unique positions:");
+    println!("small bridge {}", bridge.unique_positions());
+    println!("large bridge {}", large_bridge.unique_positions());
 }

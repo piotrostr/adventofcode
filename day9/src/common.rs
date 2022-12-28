@@ -37,3 +37,29 @@ pub struct Point {
     pub x: i32,
     pub y: i32,
 }
+
+pub fn check_if_are_adjacent(knot_one: &Point, knot_two: &Point) -> bool {
+    // overlap
+    if knot_one.x == knot_two.x && knot_one.y == knot_two.y {
+        return true;
+    }
+
+    // top/bottom
+    if knot_one.x == knot_two.x && (knot_one.y == knot_two.y + 1 || knot_one.y == knot_two.y - 1) {
+        return true;
+    }
+
+    // sides
+    if knot_one.y == knot_two.y && (knot_one.x == knot_two.x + 1 || knot_one.x == knot_two.x - 1) {
+        return true;
+    }
+
+    // corners
+    if (knot_one.x == knot_two.x + 1 || knot_one.x == knot_two.x - 1)
+        && (knot_one.y == knot_two.y + 1 || knot_one.y == knot_two.y - 1)
+    {
+        return true;
+    }
+
+    false
+}
