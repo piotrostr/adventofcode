@@ -10,6 +10,7 @@ use std::fs::read_to_string;
 fn main() {
     let mut bridge = Bridge::new();
     let mut large_bridge = LargeBridge::new();
+
     read_to_string("input.txt")
         .unwrap()
         .lines()

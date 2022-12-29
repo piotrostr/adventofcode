@@ -1,26 +1,17 @@
-use crate::common::check_if_are_adjacent;
-
 use super::common::{Direction, Instruction, Point};
-use std::{
-    collections::{HashSet, VecDeque},
-    mem::swap,
-};
+use std::{collections::HashSet, thread::sleep, time::Duration};
 
 /// there is no head position and no tail, as the head is just going to be the `self.knots.back()`
 /// and tail `self.knots.front()`
 pub struct LargeBridge {
-    knots: VecDeque<Point>,
+    knots: [Point; 10],
     tail_positions_set: HashSet<Point>,
 }
 
 impl LargeBridge {
     pub fn new() -> Self {
         Self {
-            knots: VecDeque::<Point>::from(
-                (0..=9)
-                    .map(|_| Point { x: 0, y: 0 })
-                    .collect::<Vec<Point>>(),
-            ),
+            knots: [Point { x: 0, y: 0 }; 10],
             tail_positions_set: HashSet::<Point>::new(),
         }
     }
@@ -29,100 +20,105 @@ impl LargeBridge {
         self.tail_positions_set.len()
     }
 
-    /// This is going to be slightly different from the previous implementation, every knot is
-    /// going to behave as the tail, meaning it will be following the next node (used to be head)
-    ///
-    /// The check_if_adjacent method is be refactored to take two points as parameters, keeping the
-    /// same logic, yet now it can be applied iteratively to all of the points
     pub fn handle_instruction(&mut self, instruction: &Instruction) {
         let mut steps_remaining = instruction.n_steps;
         while steps_remaining > 0 {
-            let head_position = *self.knots.back().unwrap();
+            let head = self.knots.first_mut().unwrap();
             match instruction.direction {
                 Direction::Right => {
-                    *self.knots.back_mut().unwrap() = Point {
-                        x: head_position.x + 1,
-                        y: head_position.y,
+                    *head = Point {
+                        x: head.x + 1,
+                        y: head.y,
                     };
                 }
                 Direction::Left => {
-                    *self.knots.back_mut().unwrap() = Point {
-                        x: head_position.x - 1,
-                        y: head_position.y,
+                    *head = Point {
+                        x: head.x - 1,
+                        y: head.y,
                     };
                 }
                 Direction::Up => {
-                    *self.knots.back_mut().unwrap() = Point {
-                        x: head_position.x,
-                        y: head_position.y + 1,
+                    *head = Point {
+                        x: head.x,
+                        y: head.y + 1,
                     };
                 }
                 Direction::Down => {
-                    *self.knots.back_mut().unwrap() = Point {
-                        x: head_position.x,
-                        y: head_position.y - 1,
+                    *head = Point {
+                        x: head.x,
+                        y: head.y - 1,
                     };
                 }
             }
 
-            // the error is here, I implemented the logic here as in the snake game
-            //
-            // for this application, the knots are stretching in a similar direction as the head,
-            // but not following it directly, more-so trying to hold the line
-            let mut iterator = self.knots.iter_mut().rev();
-            let mut knot_one = iterator.next().unwrap();
-            let mut new_position = head_position;
-            while iterator.len() > 0 {
-                let knot_two = iterator.next().unwrap();
-                // the method below might be redundant altogether for the sake of incrementing it
-                // as in the example
-                //
-                // only the last knot before the head follows directly, similar as tail in the
-                // previous part of the question
-                //
-                // the rest of the knots are just trying to hold the line
-                if !check_if_are_adjacent(knot_one, knot_two) {
-                    swap(&mut (*knot_two), &mut new_position);
-                }
-                knot_one = knot_two;
+            // the transformation has to be made based on the change of position of the previous
+            // knot
+            for i in 1..self.knots.len() {
+                let diff = (
+                    self.knots[i - 1].x - self.knots[i].x,
+                    self.knots[i - 1].y - self.knots[i].y,
+                );
+                // credit for the snippet below is https://fasterthanli.me/series/advent-of-code-2022/part-9
+                // was stuck for too long on this one
+                let adjustment = match diff {
+                    // overlapping
+                    (0, 0) => (0, 0),
+                    // touching up/left/down/right
+                    (0, 1) | (1, 0) | (0, -1) | (-1, 0) => (0, 0),
+                    // touching diagonally
+                    (1, 1) | (1, -1) | (-1, 1) | (-1, -1) => (0, 0),
+                    // need to move up/left/down/right
+                    (0, 2) => (0, 1),
+                    (0, -2) => (0, -1),
+                    (2, 0) => (1, 0),
+                    (-2, 0) => (-1, 0),
+                    // need to move to the right diagonally
+                    (2, 1) => (1, 1),
+                    (2, -1) => (1, -1),
+                    // need to move to the left diagonally
+                    (-2, 1) => (-1, 1),
+                    (-2, -1) => (-1, -1),
+                    // need to move up/down diagonally
+                    (1, 2) => (1, 1),
+                    (-1, 2) => (-1, 1),
+                    (1, -2) => (1, -1),
+                    (-1, -2) => (-1, -1),
+                    // need to move diagonally
+                    (-2, -2) => (-1, -1),
+                    (-2, 2) => (-1, 1),
+                    (2, -2) => (1, -1),
+                    (2, 2) => (1, 1),
+                    _ => panic!("unexpected diff {:?}", diff),
+                };
+                self.knots[i] = Point {
+                    x: self.knots[i].x + adjustment.0,
+                    y: self.knots[i].y + adjustment.1,
+                };
             }
 
             steps_remaining -= 1;
 
-            self.tail_positions_set.insert(*self.knots.front().unwrap());
+            self.tail_positions_set.insert(*self.knots.last().unwrap());
 
-            self.visualize();
+            // self.visualize();
         }
     }
 
-    pub fn visualize(&self) {
-        let mut min_x = 0;
-        let mut max_x = 0;
-        let mut min_y = 0;
-        let mut max_y = 0;
-
-        for knot in self.knots.iter() {
-            if knot.x < min_x {
-                min_x = knot.x;
-            }
-            if knot.x > max_x {
-                max_x = knot.x;
-            }
-            if knot.y < min_y {
-                min_y = knot.y;
-            }
-            if knot.y > max_y {
-                max_y = knot.y;
-            }
-        }
+    // this might be too small depending on input and lead to errors,
+    // change the min/max coords when using with the main submission input
+    pub fn _visualize(&self) {
+        let min_x = -40;
+        let max_x = 40;
+        let min_y = -40;
+        let max_y = 20;
 
         for y in (min_y..=max_y).rev() {
             for x in min_x..=max_x {
                 let point = Point { x, y };
                 if self.knots.contains(&point) {
-                    if point == *self.knots.front().unwrap() {
+                    if point == *self.knots.last().unwrap() {
                         print!("T");
-                    } else if point == *self.knots.back().unwrap() {
+                    } else if point == *self.knots.first().unwrap() {
                         print!("H");
                     } else {
                         print!("X");
@@ -133,6 +129,9 @@ impl LargeBridge {
             }
             println!();
         }
-        println!();
+
+        // wait a tiny bit and flush buffer to create an animation feel
+        sleep(Duration::from_millis(150));
+        print!("\x1B[2J\x1B[1;1H");
     }
 }
