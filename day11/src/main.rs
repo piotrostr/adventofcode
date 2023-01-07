@@ -1,4 +1,4 @@
-use std::{collections::VecDeque, fs::read_to_string};
+use std::fs::read_to_string;
 
 #[derive(Debug)]
 enum OperationType {
@@ -27,8 +27,9 @@ pub struct Test {
 
 #[derive(Debug)]
 pub struct Monkey {
-    index: i32,
-    starting_items: Vec<i32>,
+    _index: i32,
+    items_inspected: i32,
+    items: Vec<i32>,
     operation: Operation,
     test: Test,
 }
@@ -39,10 +40,10 @@ impl Monkey {
         let (_, index_str_raw) = lines.next().unwrap().split_once(' ').unwrap();
         let mut index_str = index_str_raw.to_string();
         index_str.pop(); // pop ":" at the end
-        let starting_items_str = lines.next().unwrap().split(' ').last().unwrap();
+        let starting_items_str = lines.next().unwrap().split(": ").last().unwrap();
         let starting_items = starting_items_str
             .split(',')
-            .map(|x| x.parse::<i32>().unwrap())
+            .map(|x| x.trim().parse::<i32>().unwrap())
             .collect();
         let (_, op_str) = lines.next().unwrap().split_once('=').unwrap();
         let operation: Operation;
@@ -103,8 +104,9 @@ impl Monkey {
                 .unwrap(),
         };
         Monkey {
-            index: index_str.parse().unwrap(),
-            starting_items,
+            _index: index_str.parse().unwrap(),
+            items: starting_items,
+            items_inspected: 0,
             operation,
             test,
         }
@@ -116,10 +118,60 @@ fn main() {
         .unwrap()
         .split("\n\n")
         .map(|monkey_entry| Monkey::parse(monkey_entry.to_string()))
-        .collect::<VecDeque<Monkey>>();
+        .collect::<Vec<Monkey>>();
 
-    while !monkeys.is_empty() {
-        let monkey = monkeys.pop_front().unwrap();
-        println!("{:?}", monkey.index);
+    let mut round = 0;
+    let divisor = 3;
+    while round < 20 {
+        for i in 0..monkeys.len() {
+            while !monkeys[i].items.is_empty() {
+                let worry_level = monkeys[i].items.remove(0);
+                monkeys[i].items_inspected += 1;
+                let (item, test_successful) = match monkeys[i].operation.op {
+                    OperationType::Add => {
+                        let item = (worry_level + monkeys[i].operation.num) / divisor;
+                        let test_successful = (item % monkeys[i].test.divisible_by) == 0;
+                        (item, test_successful)
+                    }
+                    OperationType::AddSelf => {
+                        let item = (worry_level + worry_level) / divisor;
+                        let test_successful = (item % monkeys[i].test.divisible_by) == 0;
+                        (item, test_successful)
+                    }
+                    OperationType::Multiply => {
+                        let item = (worry_level * monkeys[i].operation.num) / divisor;
+                        let test_successful = (item % monkeys[i].test.divisible_by) == 0;
+                        (item, test_successful)
+                    }
+                    OperationType::MultiplySelf => {
+                        let item = (worry_level * worry_level) / divisor;
+                        let test_successful = (item % monkeys[i].test.divisible_by) == 0;
+                        (item, test_successful)
+                    }
+                };
+
+                if test_successful {
+                    let index = monkeys[i].test.monkey_target_index_when_true as usize;
+                    monkeys[index].items.push(item);
+                } else {
+                    let index = monkeys[i].test.monkey_target_index_when_false as usize;
+                    monkeys[index].items.push(item);
+                }
+            }
+        }
+        round += 1;
     }
+
+    // sort by items inspected
+    monkeys.sort_by(|a, b| b.items_inspected.cmp(&a.items_inspected));
+
+    println!(
+        "{:?}",
+        monkeys
+            .iter()
+            .take(2)
+            .map(|monkey| monkey.items_inspected)
+            .reduce(|acc, curr| acc * curr)
+            .unwrap()
+    );
 }
